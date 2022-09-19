@@ -4,5 +4,5 @@
 	## __WORK IN PROGRESS__
 -->
 
-## 0.1.0 (2021-04-23)
+## __WORK IN PROGRESS__
 Initial release

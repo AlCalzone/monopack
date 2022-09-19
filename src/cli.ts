@@ -78,7 +78,7 @@ async function main() {
 	for (const workspace of workspaces) {
 		console.log(`  ${workspace.name}`);
 		const result = await pak.pack({
-			workspace: workspace.name,
+			workspace: path.relative(pak.cwd, workspace.dir),
 			targetDir: outDir,
 		});
 		if (result.success) {

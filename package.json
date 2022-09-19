@@ -1,6 +1,6 @@
 {
   "name": "@alcalzone/monopack",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Like `npm pack` or `yarn pack`, but for entire monorepos.",
   "main": "build/cli.js",
   "types": "build/cli.d.ts",
