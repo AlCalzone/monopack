@@ -32,7 +32,7 @@ async function main() {
 
 	let outDir =
 		(targetArgsIndex > -1 && process.argv[targetArgsIndex + 1]) ||
-		".prodpack";
+		".monopack";
 	if (!path.isAbsolute(outDir)) {
 		outDir = path.join(process.cwd(), outDir);
 	}

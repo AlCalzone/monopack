@@ -11,4 +11,4 @@ Run this inside the root of your monorepo:
 npx @alcalzone/monopack [--target <target-dir>]
 ```
 
-To specify a target directory, use the `--target` flag. By default, the tarballs will be created in the `.prodpack` directory.
+To specify a target directory, use the `--target` flag. By default, the tarballs will be created in the `.monopack` directory.
