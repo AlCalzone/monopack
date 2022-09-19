@@ -1,0 +1,49 @@
+{
+  "name": "@alcalzone/monopack",
+  "version": "0.1.0",
+  "description": "Like `npm pack` or `yarn pack`, but for entire monorepos.",
+  "main": "build/cli.js",
+  "types": "build/cli.d.ts",
+  "files": [
+    "bin/**",
+    "build/**"
+  ],
+  "bin": "bin/cli.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": "https://github.com/AlCalzone/monopack.git",
+  "author": "Dominic Griesel <d.griesel@gmx.net>",
+  "license": "MIT",
+  "scripts": {
+    "lint:ts": "eslint --ext .ts \"src/**/*.ts\"",
+    "lint": "yarn run lint:ts",
+    "prebuild": "rimraf ./build",
+    "build": "tsc -p tsconfig.build.json",
+    "check": "tsc -p tsconfig.build.json --noEmit",
+    "watch": "yarn run build --watch",
+    "release": "release-script"
+  },
+  "devDependencies": {
+    "@alcalzone/release-script": "^3.5.9",
+    "@types/fs-extra": "^9.0.13",
+    "@types/node": "^14.18.29",
+    "@types/tar-stream": "^2.2.2",
+    "@typescript-eslint/eslint-plugin": "^5.38.0",
+    "@typescript-eslint/parser": "^5.38.0",
+    "eslint": "^8.23.1",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1",
+    "prettier-plugin-organize-imports": "^3.1.1",
+    "rimraf": "^3.0.2",
+    "source-map-support": "^0.5.21",
+    "typescript": "~4.8.3"
+  },
+  "dependencies": {
+    "@alcalzone/pak": "^0.9.0",
+    "fs-extra": "^10.1.0",
+    "tar-stream": "^2.2.0"
+  },
+  "packageManager": "yarn@3.2.3"
+}

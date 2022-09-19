@@ -1,0 +1,27 @@
+# No dot-directories except github/vscode
+.*/
+!.vscode/
+!.github/
+!.yarn/
+!test/**/.yarn
+node_modules
+nbproject
+
+# Yarn config and stuff
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# Sourcemaps
+maps/
+
+# npm package files
+*.tgz
+
+Thumbs.db
+
+build/
