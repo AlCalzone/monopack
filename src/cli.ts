@@ -37,6 +37,8 @@ async function main() {
 		outDir = path.join(process.cwd(), outDir);
 	}
 
+	const noVersion = process.argv.includes("--no-version");
+
 	// First pass: read all package.json files
 	console.log("Parsing workspace...");
 	const pak = await detectPackageManager();
@@ -142,7 +144,10 @@ async function main() {
 
 		// Replace the original tarball
 		await fs.unlink(workspace.tarball);
-		await fs.rename(workspace.tarball + ".tmp", workspace.tarball);
+		const targetFileName = noVersion
+			? workspace.tarball.replace(`-${workspace.version}.tgz`, ".tgz")
+			: workspace.tarball;
+		await fs.rename(workspace.tarball + ".tmp", targetFileName);
 	}
 
 	console.log("Done!");
