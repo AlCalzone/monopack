@@ -37,6 +37,8 @@ async function main() {
 		outDir = path.join(process.cwd(), outDir);
 	}
 
+	const noVersion = process.argv.includes("--no-version");
+
 	// First pass: read all package.json files
 	console.log("Parsing workspace...");
 	const pak = await detectPackageManager();
@@ -102,17 +104,22 @@ async function main() {
 				const packageJson = JSON.parse(data.toString());
 				// Replace workspace dependencies with references to local tarballs
 				for (const dep of workspace.workspaceDependencies) {
-					const tarball = workspaces.find(
-						(w) => w.name === dep,
-					)?.tarball;
-					if (!tarball) {
+					const depWorkspace = workspaces.find((w) => w.name === dep);
+					if (!depWorkspace) {
 						console.error(
-							`Found no tarball for ${dep}, required by ${workspace.name}`,
+							`Did not find workspace ${dep}, required by ${workspace.name}`,
 						);
 						process.exit(1);
 					}
+					const targetFileName = noVersion
+						? depWorkspace.tarball.replace(
+								`-${depWorkspace.version}.tgz`,
+								".tgz",
+						  )
+						: depWorkspace.tarball;
+
 					packageJson.dependencies[dep] = `file:./${path.basename(
-						tarball,
+						targetFileName,
 					)}`;
 				}
 				// Avoid accidentally installing dev dependencies
@@ -142,7 +149,10 @@ async function main() {
 
 		// Replace the original tarball
 		await fs.unlink(workspace.tarball);
-		await fs.rename(workspace.tarball + ".tmp", workspace.tarball);
+		const targetFileName = noVersion
+			? workspace.tarball.replace(`-${workspace.version}.tgz`, ".tgz")
+			: workspace.tarball;
+		await fs.rename(workspace.tarball + ".tmp", targetFileName);
 	}
 
 	console.log("Done!");
