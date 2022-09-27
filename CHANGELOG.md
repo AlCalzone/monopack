@@ -3,7 +3,7 @@
 	Placeholder for the next version (at the beginning of the line):
 	## __WORK IN PROGRESS__
 -->
-## __WORK IN PROGRESS__
+## 1.2.0 (2022-09-27)
 Support referencing tarballs with absolute paths
 
 ## 1.1.0 (2022-09-20)
