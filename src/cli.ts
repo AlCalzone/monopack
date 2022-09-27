@@ -38,6 +38,7 @@ async function main() {
 	}
 
 	const noVersion = process.argv.includes("--no-version");
+	const absolute = process.argv.includes("--absolute");
 
 	// First pass: read all package.json files
 	console.log("Parsing workspace...");
@@ -118,9 +119,9 @@ async function main() {
 						  )
 						: depWorkspace.tarball;
 
-					packageJson.dependencies[dep] = `file:./${path.basename(
-						targetFileName,
-					)}`;
+					packageJson.dependencies[dep] = absolute
+						? `file:${targetFileName}`
+						: `file:./${path.basename(targetFileName)}`;
 				}
 				// Avoid accidentally installing dev dependencies
 				delete packageJson.devDependencies;
