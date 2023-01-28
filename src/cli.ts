@@ -1,10 +1,9 @@
 // Script to pack the monorepo packages for production, but locally
 import fs from "fs-extra";
 import path from "path";
-import type { Stream } from "stream";
-import tar from "tar-stream";
-import zlib from "zlib";
+import tar from "tar";
 import { detectPackageManager } from "@alcalzone/pak";
+import crypto from "crypto";
 
 interface Workspace {
 	name: string;
@@ -15,15 +14,7 @@ interface Workspace {
 	tarball: string;
 }
 
-async function stream2buffer(stream: Stream): Promise<Buffer> {
-	return new Promise<Buffer>((resolve, reject) => {
-		const _buf = Array<any>();
-
-		stream.on("data", (chunk) => _buf.push(chunk));
-		stream.on("end", () => resolve(Buffer.concat(_buf)));
-		stream.on("error", (err) => reject(`error converting stream - ${err}`));
-	});
-}
+let tmpDir: string;
 
 async function main() {
 	const workspaces: Workspace[] = [];
@@ -36,6 +27,8 @@ async function main() {
 	if (!path.isAbsolute(outDir)) {
 		outDir = path.join(process.cwd(), outDir);
 	}
+
+	tmpDir = path.join(outDir, `tmp-${crypto.randomBytes(4).toString("hex")}`);
 
 	const noVersion = process.argv.includes("--no-version");
 	const absolute = process.argv.includes("--absolute");
@@ -96,70 +89,75 @@ async function main() {
 	console.log("Modifying workspaces...");
 	for (const workspace of workspaces) {
 		console.log(`  ${workspace.name}`);
-		const extract = tar.extract();
-		const pack = tar.pack();
 
-		extract.on("entry", async (header, stream, next) => {
-			if (header.name === "package/package.json") {
-				const data = await stream2buffer(stream);
-				const packageJson = JSON.parse(data.toString());
-				// Replace workspace dependencies with references to local tarballs
-				for (const dep of workspace.workspaceDependencies) {
-					const depWorkspace = workspaces.find((w) => w.name === dep);
-					if (!depWorkspace) {
-						console.error(
-							`Did not find workspace ${dep}, required by ${workspace.name}`,
-						);
-						process.exit(1);
-					}
-					const targetFileName = noVersion
-						? depWorkspace.tarball.replace(
-								`-${depWorkspace.version}.tgz`,
-								".tgz",
-						  )
-						: depWorkspace.tarball;
+		// extract the tarball
+		await fs.emptyDir(tmpDir);
+		await tar.extract({
+			file: workspace.tarball,
+			cwd: tmpDir,
+		});
 
-					packageJson.dependencies[dep] = absolute
-						? `file:${targetFileName}`
-						: `file:./${path.basename(targetFileName)}`;
-				}
-				// Avoid accidentally installing dev dependencies
-				delete packageJson.devDependencies;
-
-				// Return data
-				pack.entry(header, JSON.stringify(packageJson, null, 2), next);
-			} else {
-				// pass through
-				stream.pipe(pack.entry(header, next));
+		// modify package.json
+		const packageJsonPath = path.join(tmpDir, "package/package.json");
+		const packageJson = await fs.readJSON(packageJsonPath);
+		// Replace workspace dependencies with references to local tarballs
+		for (const dep of workspace.workspaceDependencies) {
+			const depWorkspace = workspaces.find((w) => w.name === dep);
+			if (!depWorkspace) {
+				console.error(
+					`Did not find workspace ${dep}, required by ${workspace.name}`,
+				);
+				process.exit(1);
 			}
-		});
+			const targetFileName = noVersion
+				? depWorkspace.tarball.replace(
+						`-${depWorkspace.version}.tgz`,
+						".tgz",
+				  )
+				: depWorkspace.tarball;
 
-		extract.on("finish", () => {
-			pack.finalize();
-		});
+			packageJson.dependencies[dep] = absolute
+				? `file:${targetFileName}`
+				: `file:./${path.basename(targetFileName)}`;
+		}
+		// Avoid accidentally installing dev dependencies
+		delete packageJson.devDependencies;
+		// write package.json back to disk
+		await fs.writeJSON(packageJsonPath, packageJson, { spaces: 2 });
 
-		const read = fs.createReadStream(workspace.tarball);
-		const unzip = zlib.createGunzip();
-		read.pipe(unzip).pipe(extract);
+		// Repack the tarball
+		await tar.create(
+			{
+				file: workspace.tarball,
+				cwd: tmpDir,
+				gzip: { level: 9 },
+			},
+			["package"],
+		);
 
-		const zip = zlib.createGzip();
-		const write = fs.createWriteStream(workspace.tarball + ".tmp");
-		pack.pipe(zip).pipe(write);
+		// Clean up
+		await fs.remove(tmpDir);
 
-		await new Promise((resolve) => write.on("finish", resolve));
-
-		// Replace the original tarball
-		await fs.unlink(workspace.tarball);
-		const targetFileName = noVersion
-			? workspace.tarball.replace(`-${workspace.version}.tgz`, ".tgz")
-			: workspace.tarball;
-		await fs.rename(workspace.tarball + ".tmp", targetFileName);
+		// Rename the original tarball if necessary
+		if (noVersion) {
+			await fs.rename(
+				workspace.tarball,
+				workspace.tarball.replace(`-${workspace.version}.tgz`, ".tgz"),
+			);
+		}
 	}
 
 	console.log("Done!");
 }
 
 main().catch((err) => {
+	if (tmpDir) {
+		try {
+			fs.removeSync(tmpDir);
+		} catch {
+			// ignore
+		}
+	}
 	console.error(err);
 	process.exit(1);
 });
