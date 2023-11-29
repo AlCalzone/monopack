@@ -3,6 +3,9 @@
 	Placeholder for the next version (at the beginning of the line):
 	## __WORK IN PROGRESS__
 -->
+## 1.2.2 (2023-11-29)
+Upgraded `axios` to fix a vulnerability
+
 ## 1.2.1 (2023-01-28)
 Switched to `node-tar` for tarball handling, since `tar-stream` didn't support some npm-packed tarballs
 
