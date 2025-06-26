@@ -3,6 +3,9 @@
 	Placeholder for the next version (at the beginning of the line):
 	## __WORK IN PROGRESS__
 -->
+## __WORK IN PROGRESS__
+Parallelize packing and modifying workspaces
+
 ## 1.3.0 (2024-06-21)
 Add support for Yarn v4
 

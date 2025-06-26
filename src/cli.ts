@@ -33,6 +33,9 @@ async function main() {
 	const noVersion = process.argv.includes("--no-version");
 	const absolute = process.argv.includes("--absolute");
 
+	const PQueue = (await import("p-queue")).default;
+	const queue = new PQueue({ concurrency: 16 });
+
 	// First pass: read all package.json files
 	console.log("Parsing workspace...");
 	const pak = await detectPackageManager();
@@ -71,81 +74,100 @@ async function main() {
 	// Pack all workspaces
 	console.log("Packing tarballs...");
 	await fs.ensureDir(outDir);
-	for (const workspace of workspaces) {
-		console.log(`  ${workspace.name}`);
-		const result = await pak.pack({
-			workspace: path.relative(pak.cwd, workspace.dir),
-			targetDir: outDir,
-		});
-		if (result.success) {
-			workspace.tarball = result.stdout;
-		} else {
-			console.error(result.stderr);
-			process.exit(1);
-		}
-	}
+	const packTasks = workspaces
+		.map(async (workspace) => {
+			console.log(`  ${workspace.name}`);
+			const result = await pak.pack({
+				workspace: path.relative(pak.cwd, workspace.dir),
+				targetDir: outDir,
+			});
+			if (result.success) {
+				workspace.tarball = result.stdout;
+			} else {
+				console.error(result.stderr);
+				process.exit(1);
+			}
+		})
+		.map((promise) => queue.add(() => promise));
+	await Promise.all(packTasks);
 
 	// Modify each tarball to point at the other tarballs
 	console.log("Modifying workspaces...");
-	for (const workspace of workspaces) {
-		console.log(`  ${workspace.name}`);
+	const modifyTasks = workspaces
+		.map(async (workspace) => {
+			console.log(`  ${workspace.name} starting...`);
 
-		// extract the tarball
-		await fs.emptyDir(tmpDir);
-		await tar.extract({
-			file: workspace.tarball,
-			cwd: tmpDir,
-		});
-
-		// modify package.json
-		const packageJsonPath = path.join(tmpDir, "package/package.json");
-		const packageJson = await fs.readJSON(packageJsonPath);
-		// Replace workspace dependencies with references to local tarballs
-		for (const dep of workspace.workspaceDependencies) {
-			const depWorkspace = workspaces.find((w) => w.name === dep);
-			if (!depWorkspace) {
-				console.error(
-					`Did not find workspace ${dep}, required by ${workspace.name}`,
-				);
-				process.exit(1);
-			}
-			const targetFileName = noVersion
-				? depWorkspace.tarball.replace(
-						`-${depWorkspace.version}.tgz`,
-						".tgz",
-				  )
-				: depWorkspace.tarball;
-
-			packageJson.dependencies[dep] = absolute
-				? `file:${targetFileName}`
-				: `file:./${path.basename(targetFileName)}`;
-		}
-		// Avoid accidentally installing dev dependencies
-		delete packageJson.devDependencies;
-		// write package.json back to disk
-		await fs.writeJSON(packageJsonPath, packageJson, { spaces: 2 });
-
-		// Repack the tarball
-		await tar.create(
-			{
-				file: workspace.tarball,
-				cwd: tmpDir,
-				gzip: { level: 9 },
-			},
-			["package"],
-		);
-
-		// Clean up
-		await fs.remove(tmpDir);
-
-		// Rename the original tarball if necessary
-		if (noVersion) {
-			await fs.rename(
-				workspace.tarball,
-				workspace.tarball.replace(`-${workspace.version}.tgz`, ".tgz"),
+			const workspaceTmpDir = path.join(
+				tmpDir,
+				`workspace-${crypto.randomBytes(4).toString("hex")}`,
 			);
-		}
-	}
+
+			// extract the tarball
+			await fs.emptyDir(workspaceTmpDir);
+			await tar.extract({
+				file: workspace.tarball,
+				cwd: workspaceTmpDir,
+			});
+
+			// modify package.json
+			const packageJsonPath = path.join(
+				workspaceTmpDir,
+				"package/package.json",
+			);
+			const packageJson = await fs.readJSON(packageJsonPath);
+			// Replace workspace dependencies with references to local tarballs
+			for (const dep of workspace.workspaceDependencies) {
+				const depWorkspace = workspaces.find((w) => w.name === dep);
+				if (!depWorkspace) {
+					console.error(
+						`Did not find workspace ${dep}, required by ${workspace.name}`,
+					);
+					process.exit(1);
+				}
+				const targetFileName = noVersion
+					? depWorkspace.tarball.replace(
+							`-${depWorkspace.version}.tgz`,
+							".tgz",
+					  )
+					: depWorkspace.tarball;
+
+				packageJson.dependencies[dep] = absolute
+					? `file:${targetFileName}`
+					: `file:./${path.basename(targetFileName)}`;
+			}
+			// Avoid accidentally installing dev dependencies
+			delete packageJson.devDependencies;
+			// write package.json back to disk
+			await fs.writeJSON(packageJsonPath, packageJson, { spaces: 2 });
+
+			// Repack the tarball
+			await tar.create(
+				{
+					file: workspace.tarball,
+					cwd: workspaceTmpDir,
+					gzip: { level: 9 },
+				},
+				["package"],
+			);
+
+			// Clean up
+			await fs.remove(workspaceTmpDir);
+
+			// Rename the original tarball if necessary
+			if (noVersion) {
+				await fs.rename(
+					workspace.tarball,
+					workspace.tarball.replace(
+						`-${workspace.version}.tgz`,
+						".tgz",
+					),
+				);
+			}
+
+			console.log(`  ${workspace.name} done!`);
+		})
+		.map((promise) => queue.add(() => promise));
+	await Promise.all(modifyTasks);
 
 	console.log("Done!");
 }

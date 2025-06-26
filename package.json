@@ -47,6 +47,7 @@
   "dependencies": {
     "@alcalzone/pak": "^0.11.0",
     "fs-extra": "^10.1.0",
+    "p-queue": "^8.1.0",
     "tar": "^6.1.13"
   },
   "packageManager": "yarn@3.2.3"
