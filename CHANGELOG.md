@@ -3,6 +3,12 @@
 	Placeholder for the next version (at the beginning of the line):
 	## __WORK IN PROGRESS__
 -->
+## __WORK IN PROGRESS__
+* BREAKING: Node.js 20+ is now required
+* Modernize tooling
+* Update dependencies
+* Migrate to ESM
+
 ## 1.4.0 (2025-06-26)
 Parallelize packing and modifying workspaces
 
