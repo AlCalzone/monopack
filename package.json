@@ -2,8 +2,7 @@
   "name": "@alcalzone/monopack",
   "version": "1.4.0",
   "description": "Like `npm pack` or `yarn pack`, but for entire monorepos.",
-  "main": "build/cli.js",
-  "types": "build/cli.d.ts",
+  "type": "module",
   "files": [
     "bin/**",
     "build/**"

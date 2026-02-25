@@ -2,7 +2,7 @@
 import { rmSync } from "node:fs";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "path";
-import tar from "tar";
+import * as tar from "tar";
 import { detectPackageManager } from "@alcalzone/pak";
 import crypto from "crypto";
 
