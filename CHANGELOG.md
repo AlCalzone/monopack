@@ -3,7 +3,7 @@
 	Placeholder for the next version (at the beginning of the line):
 	## __WORK IN PROGRESS__
 -->
-## __WORK IN PROGRESS__
+## 2.0.0 (2026-02-25)
 * BREAKING: Node.js 20+ is now required
 * Modernize tooling
 * Update dependencies
