@@ -1,5 +1,6 @@
 // Script to pack the monorepo packages for production, but locally
-import fs from "fs-extra";
+import { rmSync } from "node:fs";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "path";
 import tar from "tar";
 import { detectPackageManager } from "@alcalzone/pak";
@@ -15,6 +16,36 @@ interface Workspace {
 }
 
 let tmpDir: string;
+
+async function readJson(filePath: string): Promise<any> {
+	const content = await readFile(filePath, "utf8");
+	return JSON.parse(content);
+}
+
+async function writeJson(
+	filePath: string,
+	data: unknown,
+	spaces = 2,
+): Promise<void> {
+	await writeFile(
+		filePath,
+		`${JSON.stringify(data, null, spaces)}\n`,
+		"utf8",
+	);
+}
+
+async function ensureDir(dirPath: string): Promise<void> {
+	await mkdir(dirPath, { recursive: true });
+}
+
+async function removeDir(dirPath: string): Promise<void> {
+	await rm(dirPath, { recursive: true, force: true });
+}
+
+async function emptyDir(dirPath: string): Promise<void> {
+	await removeDir(dirPath);
+	await ensureDir(dirPath);
+}
 
 async function main() {
 	const workspaces: Workspace[] = [];
@@ -41,7 +72,7 @@ async function main() {
 	const pak = await detectPackageManager();
 	const workspaceDirs = await pak.workspaces();
 	for (const workspaceDir of workspaceDirs) {
-		const packageJson = await fs.readJson(
+		const packageJson = await readJson(
 			path.join(workspaceDir, "package.json"),
 		);
 		if (packageJson.private) continue;
@@ -73,7 +104,7 @@ async function main() {
 
 	// Pack all workspaces
 	console.log("Packing tarballs...");
-	await fs.ensureDir(outDir);
+	await ensureDir(outDir);
 	const packTasks = workspaces
 		.map(async (workspace) => {
 			console.log(`  ${workspace.name}`);
@@ -103,7 +134,7 @@ async function main() {
 			);
 
 			// extract the tarball
-			await fs.emptyDir(workspaceTmpDir);
+			await emptyDir(workspaceTmpDir);
 			await tar.extract({
 				file: workspace.tarball,
 				cwd: workspaceTmpDir,
@@ -114,7 +145,7 @@ async function main() {
 				workspaceTmpDir,
 				"package/package.json",
 			);
-			const packageJson = await fs.readJSON(packageJsonPath);
+			const packageJson = await readJson(packageJsonPath);
 			// Replace workspace dependencies with references to local tarballs
 			for (const dep of workspace.workspaceDependencies) {
 				const depWorkspace = workspaces.find((w) => w.name === dep);
@@ -138,7 +169,7 @@ async function main() {
 			// Avoid accidentally installing dev dependencies
 			delete packageJson.devDependencies;
 			// write package.json back to disk
-			await fs.writeJSON(packageJsonPath, packageJson, { spaces: 2 });
+			await writeJson(packageJsonPath, packageJson, 2);
 
 			// Repack the tarball
 			await tar.create(
@@ -151,11 +182,11 @@ async function main() {
 			);
 
 			// Clean up
-			await fs.remove(workspaceTmpDir);
+			await removeDir(workspaceTmpDir);
 
 			// Rename the original tarball if necessary
 			if (noVersion) {
-				await fs.rename(
+				await rename(
 					workspace.tarball,
 					workspace.tarball.replace(
 						`-${workspace.version}.tgz`,
@@ -175,7 +206,7 @@ async function main() {
 main().catch((err) => {
 	if (tmpDir) {
 		try {
-			fs.removeSync(tmpDir);
+			rmSync(tmpDir, { recursive: true, force: true });
 		} catch {
 			// ignore
 		}
