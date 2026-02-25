@@ -128,7 +128,7 @@ async function main() {
 					? depWorkspace.tarball.replace(
 							`-${depWorkspace.version}.tgz`,
 							".tgz",
-					  )
+						)
 					: depWorkspace.tarball;
 
 				packageJson.dependencies[dep] = absolute
