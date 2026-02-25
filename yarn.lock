@@ -11,10 +11,9 @@ __metadata:
   dependencies:
     "@alcalzone/pak": ^0.12.0
     "@alcalzone/release-script": ^5.1.1
-    "@tsconfig/node14": ^1.0.3
+    "@tsconfig/node20": ^20.1.9
     "@types/fs-extra": ^9.0.13
-    "@types/node": ^14.18.36
-    "@types/tar": ^6.1.3
+    "@types/node": ^20.19.33
     "@typescript-eslint/eslint-plugin": ^5.38.0
     "@typescript-eslint/parser": ^5.38.0
     eslint: ^8.23.1
@@ -27,7 +26,7 @@ __metadata:
     rimraf: ^3.0.2
     source-map-support: ^0.5.21
     tar: ^7.5.9
-    typescript: ~4.8.3
+    typescript: ~5.9.3
   bin:
     monopack: bin/cli.js
   languageName: unknown
@@ -214,10 +213,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tsconfig/node14@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "@tsconfig/node14@npm:1.0.3"
-  checksum: 19275fe80c4c8d0ad0abed6a96dbf00642e88b220b090418609c4376e1cef81bf16237bf170ad1b341452feddb8115d8dd2e5acdfdea1b27422071163dc9ba9d
+"@tsconfig/node20@npm:^20.1.9":
+  version: 20.1.9
+  resolution: "@tsconfig/node20@npm:20.1.9"
+  checksum: 3d66cd9942175e477cb6b68d06d9523089fca32de8e63ef09433e2dc89fb737276b196700ee48e5991396a0ee35ba527a86599cf3c80310d6c569312ff79205e
   languageName: node
   linkType: hard
 
@@ -244,20 +243,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^14.18.36":
-  version: 14.18.36
-  resolution: "@types/node@npm:14.18.36"
-  checksum: da7f479b3fc996d585e60b8329987c6e310ddbf051e14f2d900ce04f7768f42fa7b760f0eb376008d3eca130ce9431018fb5c9e44027dcb7bb139c547e44b9c5
-  languageName: node
-  linkType: hard
-
-"@types/tar@npm:^6.1.3":
-  version: 6.1.3
-  resolution: "@types/tar@npm:6.1.3"
+"@types/node@npm:^20.19.33":
+  version: 20.19.33
+  resolution: "@types/node@npm:20.19.33"
   dependencies:
-    "@types/node": "*"
-    minipass: ^3.3.5
-  checksum: 3a221f74adfcef8555b9c4cc951907dfd567630744ffe5211da1b44caf2a4c3b02297b73c9fb02d171e93a7a7c74fb15c1826e3f0438f0e5e8f4c790db59ddcf
+    undici-types: ~6.21.0
+  checksum: 81819516b2e48fc3efe06682b5405e31c2bca721734a0ce1bec7e34d68b3d6b87e2dd205713c5371746fc501f42a93f3e6442967e1a94f7b872129e109f82163
   languageName: node
   linkType: hard
 
@@ -1263,15 +1254,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minipass@npm:^3.3.5":
-  version: 3.3.6
-  resolution: "minipass@npm:3.3.6"
-  dependencies:
-    yallist: ^4.0.0
-  checksum: a30d083c8054cee83cdcdc97f97e4641a3f58ae743970457b1489ce38ee1167b3aaf7d815cd39ec7a99b9c40397fd4f686e83750e73e652b21cb516f6d845e48
-  languageName: node
-  linkType: hard
-
 "minipass@npm:^7.0.4, minipass@npm:^7.1.2":
   version: 7.1.2
   resolution: "minipass@npm:7.1.2"
@@ -1720,23 +1702,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~4.8.3":
-  version: 4.8.3
-  resolution: "typescript@npm:4.8.3"
+"typescript@npm:~5.9.3":
+  version: 5.9.3
+  resolution: "typescript@npm:5.9.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 8286a5edcaf3d68e65c451aa1e7150ad1cf53ee0813c07ec35b7abdfdb10f355ecaa13c6a226a694ae7a67785fd7eeebf89f845da0b4f7e4a35561ddc459aba0
+  checksum: 0d0ffb84f2cd072c3e164c79a2e5a1a1f4f168e84cb2882ff8967b92afe1def6c2a91f6838fb58b168428f9458c57a2ba06a6737711fdd87a256bbe83e9a217f
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@~4.8.3#~builtin<compat/typescript>":
-  version: 4.8.3
-  resolution: "typescript@patch:typescript@npm%3A4.8.3#~builtin<compat/typescript>::version=4.8.3&hash=a1c5e5"
+"typescript@patch:typescript@~5.9.3#~builtin<compat/typescript>":
+  version: 5.9.3
+  resolution: "typescript@patch:typescript@npm%3A5.9.3#~builtin<compat/typescript>::version=5.9.3&hash=a1c5e5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 2222d2382fb3146089b1d27ce2b55e9d1f99cc64118f1aba75809b693b856c5d3c324f052f60c75b577947fc538bc1c27bad0eb76cbdba9a63a253489504ba7e
+  checksum: 8bb8d86819ac86a498eada254cad7fb69c5f74778506c700c2a712daeaff21d3a6f51fd0d534fe16903cb010d1b74f89437a3d02d4d0ff5ca2ba9a4660de8497
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 46331c7d6016bf85b3e8f20c159d62f5ae471aba1eb3dc52fff35a0259d58dcc7d592d4cc4f00c5f9243fa738a11cfa48bd20203040d4a9e6bc25e807fab7ab3
   languageName: node
   linkType: hard
 
