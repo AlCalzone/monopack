@@ -25,11 +25,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20, 22, 24]
+        node-version: [22, 24]
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
+
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
 
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v6
@@ -64,17 +68,17 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
+
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
 
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v6
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
-
-    # Ensure npm 11.5.1 or later is installed
-    - name: Update npm
-      run: npm install -g npm@latest
 
     - name: Extract the version and commit body from the tag
       id: extract_release
@@ -93,7 +97,7 @@ jobs:
         fi
 
     - name: Install dependencies
-      run: yarn install --frozen-lockfile
+      run: yarn install --immutable
 
     - name: Create a clean build
       run: yarn run build
@@ -104,7 +108,7 @@ jobs:
       run: yarn npm publish $TAG
 
     - name: Create Github Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
