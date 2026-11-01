@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@alcalzone/pak": "^0.12.0",
-    "p-queue": "^8.1.0",
+    "p-queue": "^8.1.1",
     "tar": "^7.5.9"
   },
   "packageManager": "yarn@4.17.0"
